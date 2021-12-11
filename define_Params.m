@@ -814,7 +814,7 @@ switch Species
         % Define the basic parameters
         Params = struct([]);
         Params(1).Linf = 69.8 ;
-        Params.k = 0.23;
+        Params.k = 0.06;
         Params.t0 = 0; % Using Female fishbase value
         Params.M = 0.18;
         Params.A = 33;
