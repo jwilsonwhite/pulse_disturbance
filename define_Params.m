@@ -9,15 +9,15 @@ switch Species
         % Define the basic parameters
         Params = struct([]);
         Params(1).Linf = 99.46;
-        Params.k = 0.17;
+        Params.k = 0.188;
         Params.t0 = 0; % Using Female fishbase value
-        Params.M = 0.54;
+        Params.M = 0.499;
         Params.F = 0.2;
         Params.A = 20; 
         Params.Amat = 5; % 57.3cm
         Params.Af = 4; % 60 cm is 50% for main fleets
         Params.c = 5.631e-6; % biomass-length constant
-        Params.c = 1;
+        %Params.c = 1;
         %Params.d = 3.17; % biomass-length exponent species specific from
         % Kaplan et al. 2019
         Params.d = 3.1306; % biomass-length exponent (general)
@@ -26,7 +26,7 @@ switch Species
         % Recruitment rate in Open scenario
         Params.R = 1;
         
-        Params.steepness = 1; % DO NOT USE
+       % Params.steepness = 1; % DO NOT USE
         
        % Some derived quantities:
         Params.Ages = 1:Params.A;
@@ -817,7 +817,7 @@ switch Species
         Params.k = 0.06;
         Params.t0 = 0; % Using Female fishbase value
         Params.M = 0.18;
-        Params.A = 33;
+        Params.A = 50;
         Params.Amat = 3;
         Params.Af = 6;
         Params.c = 1; % biomass-length constant

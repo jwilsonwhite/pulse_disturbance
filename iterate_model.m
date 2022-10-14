@@ -1,4 +1,4 @@
-function [N, B, Y, E, EP, C, Yextra] = iterate_model(Params,L,F,N0,Y0,C0,B0,T,Conn_scenario,DD_scenario, MPA_frac,Noise,AdultNoise)
+function [N, B, Y, E, EP, C, Yextra] = iterate_model(Params,L,F,N0,Y0,C0,B0,T,Conn_scenario,DD_scenario, MPA_frac,Noise,doAdultNoise,AdultNoise)
 
 % Iterate a Leslie-matrix-based model
 % Note that F is a vector with a value for each patch
@@ -8,6 +8,7 @@ function [N, B, Y, E, EP, C, Yextra] = iterate_model(Params,L,F,N0,Y0,C0,B0,T,Co
 if ~exist('Noise','var')
     Noise = ones(T,1);
 else
+
     if length(Noise) < T % if sending parameters to create colored noise
          Noise = exp(normrnd(Noise(1),Noise(2),T,1)); % white noise (ok for now...add other features later)
         % Noise = [mean, sd] of white noise process
@@ -20,9 +21,12 @@ else
     end
 end
 
-if ~exist('AdultNoise','var')
-    AdultNoise = false;
+if ~exist('doAdultNoise','var')
+    doAdultNoise = false;
 end
+ if ~exist('AdultNoise','var')
+    AdultNoise = ones(T,1);
+ end
 
 if size(F,2)==1
     F = repmat(F(:),[1,T]); % may need to be adjusted for multi-patch...
@@ -65,8 +69,8 @@ switch Conn_scenario
                  
                 for i = 1:size(N0,2) % number of patches
                 N(:,i,t) = L(:,:,i,t)*N(:,i,t-1); 
-                if AdultNoise
-                   N(:,i,t) = N(:,i,t)*Noise(t);
+                if doAdultNoise
+                   N(:,i,t) = N(:,i,t)*AdultNoise(t);
                 end
                 N(1,i,t)=R; %N(1,i,t)=R*MPA_frac; % !!!! CHANGE THIS IF MPA_FRAC>0 %% open recruitment
                 B(:,i,t)= N(:,i,t).* Params.BiomassAge(:); %(N(1:end,t-1)-N(2:end)).*(Ba(1:end-1)+Ba(2:end))/2;
@@ -107,9 +111,9 @@ switch Conn_scenario
             
                 for i = 1:size(N0,2) % number of patches
                     N(:,i,t) = L(:,:,i,t)*N(:,i,t-1);
-                    if AdultNoise
-                   N(:,i,t) = N(:,i,t)*Noise(t);
-                end
+                    if doAdultNoise
+                   N(:,i,t) = N(:,i,t)*AdultNoise(t);
+                    end
                     Nextra(:,i,t) = L(:,:,i)*Nextra(:,i,t-1);
                     if i==1 % MPA
                     E(i,t)=N(1,i,t); %Eggs produced by mpa
@@ -174,8 +178,8 @@ switch Conn_scenario
         for t = 2:T %this was 2:T
             for i = 1:size(N0,2) % number of patches
                 N(:,i,t)=L(:,:,i,t)*N(:,i,t-1);%closed pop has no external recruits
-                if AdultNoise
-                   N(:,i,t) = N(:,i,t)*Noise(t);
+                if doAdultNoise
+                   N(:,i,t) = N(:,i,t)*AdultNoise(t);
                 end
                 %N(1,:,t) = (Params.R*exp(-randn(1)))*MPA_frac; % add noise
                 %to recruitment

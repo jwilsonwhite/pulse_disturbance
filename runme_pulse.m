@@ -11,10 +11,12 @@ function runme_pulse(Fig1,Fig2,Fig3,Fig4a,Fig4b,Fig5,Fig6,FigS1)
 if ~exist('Fig1','var'); Fig1 = false; end % example pulse-response
 if ~exist('Fig2','var'); Fig2 = false; end % example influence functions
 if ~exist('Fig3','var'); Fig3 = false; end % example pulse-response
+if ~exist('Fig3x','var'); Fig3x = false; end % example pulse-response as a convolution
 if ~exist('Fig4a','var'); Fig4a = false; end % bivariate plot, multiple species (open or closed, closed is 4c)
-if ~exist('Fig4b','var'); Fig4a = false; end % bivariate plot, multiple species (open or closed)
+if ~exist('Fig4b','var'); Fig4b = false; end % bivariate plot, multiple species (open or closed)
 if ~exist('Fig5','var'); Fig5 = false; end % harvest, one species
 if ~exist('Fig6','var'); Fig6 = false; end % harvest, Pacific cod, harvest stops
+if ~exist('Fig6b','var'); Fig6b = true; end % P cod with & without recruitment effects
 if ~exist('Fig7','var'); Fig7 = false; end % Pacific cod, no harvest intervention (deprecated)
 if ~exist('FigS1','var'); FigS1 = false; end % illustration of convolution approach, multipanel
 
@@ -168,6 +170,12 @@ set(gca,'xlim',[xl(1),50])
 set(sh,'xcolor','k','ycolor','k','ylim',[0.6 1])
 
 end %% end if Fig2
+
+%% Fig 3X
+% Examples of convolution
+if Fig3x
+    
+end % end if Fig3x
 
 
 
@@ -402,9 +410,99 @@ if Fig6
                              
    
                                               
-end % end if Fig6b
+end % end if Fig6
 %%
 
+%% Fig 6b - Pacific cod w & w/o recruitment
+if Fig6b
+    Species = 'Pacific cod';
+    % Mean F of 0.5803 in 10 years prior to 2014, that corresponds to this
+    % FLEP:(Table 2.24 in 2018 assessment)
+    FLEPs = 0.26; %0.28; % actual estimated value for Pacific cod in the Barbeaux assessement: 0.2864; 
+    %Reduction: 58% of normal for 3 years (Laurel & Rogers 2000)
+    % age-0 recruitment in past 10 years
+    %Age0 = [1.002, 1.703,0.989, 0.678, 0.49, 0.942, 0.761, 0.869, 0.734, 0.372];
+    Reduction = [log(0.99999999), log(1-0.58), log(1-0.58)];
+    Duration = 3;
+    Delay = NaN; % only used if multiple disturbances (it gives the interval)
+    T = 200; % total time
+    Ti = 100; % time prior to disturbance
+    Conn_scenario = 'Closed'; % Connectivity: open (linear subsidy) or closed
+    DD_scenario = 'BH';
+    F_reduct = 0; %:0.1:1;
+    AdultMort = [exp(0.499 - 0.8448);... % difference factor between two natural mortality rates
+                 exp(0.499 - 0.8448);...
+                 1];
+    figure(1)
+    clf
+    set(gcf,'units','cent','position',[10 10 19 20])
+    
+    
+    %Cols = flipud(winter(length(F_reduct)));
+    Cols = [0.1 0.1 0.9; 0 0 0;  0.9, 0.1 0.1];
+   
+    for ff = 1:length(Reduction)
+    
+    [~, N, B, ~, ~, Y, ~,Resist,RT] = square_pulse_resil(Species,FLEPs,Reduction(ff),Duration,Delay,T,Ti,...
+                                                     Conn_scenario, DD_scenario,'B',0.95,1,true,F_reduct,AdultMort(ff));
+                        
+  %keyboard                                               
+    Bplot_tmp = sum(squeeze(B));
+    Bplot_tmp = Bplot_tmp/Bplot_tmp(Ti-1);
+
+    Bplot(:,ff) = Bplot_tmp(:); 
+    
+    Yplot_tmp = Y/Y(Ti-1);
+    Yplot(:,ff) = Yplot_tmp(:);
+    
+        
+        Ym(ff) = mean(Y(Ti:(Ti+9)))/Y(Ti-1);
+        
+        
+        Ymax(ff) = max(Y);
+    end
+   % keyboard
+    
+    % standardize yield to be relative
+   % Ym = Ym/Ym(1);
+  %  Whichone = 2;
+  %  Best = find(Ym(:,Whichone)==max(Ym(:,Whichone)),1);
+    
+    
+ %   Col = winter(length(F_reduct));
+    
+    subplot(2,1,1)
+    hold on
+    resil_trajec_plot(Bplot,Duration,T,Ti,'Relative biomass',Cols)
+   
+  %  plot(-5:100,Bplot((Ti-5):end,Best,Whichone),'k-','linewidth',2)
+    xl = get(gca,'xlim');
+    set(gca,'xlim',[-5,20])
+    
+  %  colormap(flipud(Cols))
+  %  cb = colorbar;
+  %  set(cb,'tickdir','out','ticklength',0.015)
+  %  caxis([F_reduct(1),F_reduct(end)])
+  %  ylabel(cb,'Prop. reduction in F','rotation',270,'verticalalignment','bottom','fontsize',12)
+    
+    
+    subplot(2,1,2)
+    resil_trajec_plot(Yplot,Duration,T,Ti,'Relative yield',Cols)
+  %  plot(-5:100,Yplot((Ti-5):end,Best,Whichone),'k-','linewidth',2)
+
+    xl = get(gca,'xlim');
+    set(gca,'xlim',[-5,20])
+    
+   % xlim([99 115])
+ %   colormap(flipud(Cols))
+ %   cb = colorbar;
+ %   set(cb,'tickdir','out','ticklength',0.015)
+   % caxis([F_reduct(1),F_reduct(end)])
+   % ylabel(cb,'Prop. reduction in F','rotation',270,'verticalalignment','bottom','fontsize',12)
+    
+                                 
+end % end if Fig6b
+%%
 
 
 %% Loo's Convolution Figure
@@ -419,7 +517,7 @@ end %
 
 %% Fig 7 - Pacific cod (deprecated)
 if Fig7
-    Species = 'Pacific cod';
+    Species = 'Black rockfish';
     % Mean F of 0.5803 in 10 years prior to 2014, that corresponds to this
     % FLEP:(Table 2.24 in 2018 assessment)
     FLEPs = 0.2864;

@@ -1,6 +1,6 @@
 function [Noise, N, B, E, EP, Y, Params, Resist,RT]=square_pulse_resil(Species,FLEPs,Reduction,Duration,Delay,...
                                                             T,Ti,Conn_scenario, DD_scenario,...
-                                                            RTvar,Thresh,Mfactor,AdultMortality,FReduct)
+                                                            RTvar,Thresh,Mfactor,AdultMortality,FReduct,AdultMortFactor)
 
 % N95, B95, Nmin, Bmin, mN, mB, miN, miB
 % T is overall length of simulation
@@ -27,6 +27,9 @@ end
 if ~exist('FReduct','var')
 FReduct=0;
 end
+if ~exist('AdultMortFactor','var')
+    AdultMortFactor = Reduction;
+end
 
 
 Ti2 = Ti+(Duration-1); % subtract 1 so that Duration = 1 leads to a single year of disturbance, etc. in indexing
@@ -40,6 +43,11 @@ Noise = zeros(T,1);
 Noise(Ti:Ti2) = Reduction;
 if ~isnan(Delay)
     Noise(Ti3:Ti4) = Reduction;
+end
+AdultNoise = ones(T,1);
+AdultNoise([Ti:Ti2]+1) = AdultMortFactor;
+if ~isnan(Delay)
+    AdultNoise([Ti3:Ti4]+1) = AdultMortFactor;
 end
 
 % Set up the population dynamics
@@ -75,7 +83,7 @@ Fvec = repmat(F(f),[1,T]);
 if FReduct ~= 0
 Fvec(Fdelay:(Fdelay+Duration-1)) = F(f)*(1-FReduct);
 end
-[Ntmp, Btmp, Y, E, EP] = iterate_model(Params,LeslieArray,Fvec,N0(:,end),Y0,C0,B0(:,end),T,Conn_scenario,DD_scenario, 0, Noise, AdultMortality);
+[Ntmp, Btmp, Y, E, EP] = iterate_model(Params,LeslieArray,Fvec,N0(:,end),Y0,C0,B0(:,end),T,Conn_scenario,DD_scenario, 0, Noise, AdultMortality,AdultNoise);
 N(:,:,:,f) = Ntmp;
 B(:,:,:,f) = Btmp;
 
